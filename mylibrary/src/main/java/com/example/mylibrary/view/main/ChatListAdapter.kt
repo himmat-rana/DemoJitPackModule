@@ -7,7 +7,7 @@ import android.view.*
 import androidx.recyclerview.widget.RecyclerView
 import com.example.mylibrary.R
 import com.example.mylibrary.model.*
-import kotlinx.android.extensions.LayoutContainer
+//import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.rv_chat_text_item.*
 import com.bumptech.glide.*
 import com.example.mylibrary.utils.*
@@ -28,11 +28,15 @@ import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import kotlinx.android.synthetic.main.rv_chat_doc_item.*
 import kotlinx.android.synthetic.main.rv_chat_image_item.*
 import kotlinx.android.synthetic.main.rv_chat_video_item.*
-import android.provider.MediaStore
-import android.media.ThumbnailUtils
-import android.graphics.drawable.BitmapDrawable
-import com.bumptech.glide.request.RequestOptions
-import java.util.*
+import com.example.mylibrary.view.main.LayoutContainer1
+import kotlinx.android.synthetic.main.rv_chat_adaptive_card_item.view.*
+import kotlinx.android.synthetic.main.rv_chat_doc_item.view.*
+import kotlinx.android.synthetic.main.rv_chat_image_item.view.*
+import kotlinx.android.synthetic.main.rv_chat_text_item.view.*
+import kotlinx.android.synthetic.main.rv_chat_text_item.view.ivSenderPhoto
+import kotlinx.android.synthetic.main.rv_chat_text_item.view.tvMessageTime
+import kotlinx.android.synthetic.main.rv_chat_text_item.view.tvSenderName
+import kotlinx.android.synthetic.main.rv_chat_video_item.view.*
 
 const val s3Prefix: String = "https://s3-us-west-1.amazonaws.com/supportgeniemedia/"
 
@@ -156,19 +160,19 @@ class ChatListAdapter(
     }
 
     abstract inner class BaseViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView),
-        LayoutContainer {
+        LayoutContainer1 {
         open fun bindTo(chatMessage: ChatMessage) {
             var photoUrl: String? = null
             val isMe = chatMessage.senderType == "customer"
             if (isMe) {
-                tvSenderName.text = "Me"
+                itemView.tvSenderName.text = "Me"
             } else {
                 var agentFound = false
                 agents.forEach {
                     if (it.userId == chatMessage.sender) {
                         agentFound = true
                         println("found agent name ${it.name}, id ${it.userId} for message ${chatMessage.message} photoUrl ${it.photoUrl}")
-                        tvSenderName.text = it.name
+                        itemView.tvSenderName.text = it.name
                         if ((it.photoUrl != null) && (it.photoUrl != "")) {
                             photoUrl = getSGStoreUrl(it.photoUrl)
                         }
@@ -176,11 +180,11 @@ class ChatListAdapter(
                 }
                 if (!agentFound) {
                     println("not found agent for sender ${chatMessage.sender} senderType ${chatMessage.senderType} message ${chatMessage.message} ")
-                    tvSenderName.text = "Agent"
+                    itemView.tvSenderName.text = "Agent"
                 }
             }
             println("displaying message ${chatMessage.message}")
-            tvMessageTime.text =
+            itemView.tvMessageTime.text =
                 formatDateTime(chatMessage.localMessageTime, containerView.context)
 
             if (photoUrl != null) {
@@ -188,7 +192,7 @@ class ChatListAdapter(
                 Glide.with(containerView)
                     .asBitmap()
                     .load(photoUrl)
-                    .into(ivSenderPhoto)
+                    .into(itemView.ivSenderPhoto)
             }
         }
     }
@@ -217,17 +221,17 @@ class ChatListAdapter(
                     .error(R.mipmap.image_not_found)
 
 //                    .thumbnail(0.1f)
-                    .into(ivMessageImage)
+                    .into(itemView.ivMessageImage)
 
             } else {
                 Glide.with(containerView)
                     .asBitmap()
                     .load(R.mipmap.image_not_found)
                     .placeholder(circularProgressDrawable)
-                    .into(ivMessageImage)
+                    .into(itemView.ivMessageImage)
             }
 
-            ivMessageImage.setOnClickListener {
+            itemView.ivMessageImage.setOnClickListener {
                 val intent = Intent(containerView.context, ImageZoomActivity::class.java)
                 intent.putExtra("message", photoUrl)
                 containerView.context.startActivity(intent)
@@ -282,7 +286,7 @@ class ChatListAdapter(
 //            imgThumbnail.background = bitmapDrawable
 
             if (videoUrl != "") {
-                imgMiniThumbnail.visibility=View.VISIBLE
+                itemView.imgMiniThumbnail.visibility=View.VISIBLE
                 Glide.with(containerView)
                     .asBitmap()
                     .load(videoUrl)
@@ -292,7 +296,7 @@ class ChatListAdapter(
 //                    .apply(RequestOptions.circleCropTransform())
 
 //                   .thumbnail(0.1f)
-                    .into(imgThumbnail)
+                    .into(itemView.imgThumbnail)
 
 //                Glide.with(containerView)
 //                    .asBitmap()
@@ -308,10 +312,10 @@ class ChatListAdapter(
                     .asBitmap()
                     .load(R.mipmap.video_not_found)
                     .placeholder(circularProgressDrawable)
-                    .into(imgThumbnail)
+                    .into(itemView.imgThumbnail)
             }
 
-            imgMiniThumbnail.setOnClickListener {
+            itemView.imgMiniThumbnail.setOnClickListener {
                 //                println("videoUrl inside Click Listener")
                 val intent = Intent(containerView.context, VideoActivity::class.java)
 //                val intent = Intent(containerView.context, VideoViewActivity::class.java)
@@ -327,9 +331,9 @@ class ChatListAdapter(
             val pdfUrl = getSGStoreUrl(chatMessage.message)
             println("pdfUrl inside ChatDocViewHolder : $pdfUrl")
             if (pdfUrl != "") {
-                tvPdfMessage.text = pdfUrl
+                itemView.tvPdfMessage.text = pdfUrl
             }
-            tvPdfMessage.setOnClickListener {
+            itemView.tvPdfMessage.setOnClickListener {
                 val intent = Intent(containerView.context, PdfViewerActivity::class.java)
                 intent.putExtra("message", pdfUrl)
                 containerView.context.startActivity(intent)
@@ -381,15 +385,15 @@ class ChatListAdapter(
                 //llAdaptiveCard.addView(it)
                 val oldView = containerView.findViewWithTag<View>("adaptiveCard")
                 oldView?.let {
-                    clAdaptiveCard.removeView(it)
+                    itemView.clAdaptiveCard.removeView(it)
                 }
                 val set = ConstraintSet()
                 it.setTag("adaptiveCard")
                 it.setId(View.generateViewId())
-                clAdaptiveCard.addView(it, 0)
-                set.clone(clAdaptiveCard)
-                set.connect(it.getId(), ConstraintSet.BOTTOM, clAdaptiveCard.id, ConstraintSet.BOTTOM, 0)
-                set.applyTo(clAdaptiveCard)
+                itemView.clAdaptiveCard.addView(it, 0)
+                set.clone(itemView.clAdaptiveCard)
+                set.connect(it.getId(), ConstraintSet.BOTTOM, itemView.clAdaptiveCard.id, ConstraintSet.BOTTOM, 0)
+                set.applyTo(itemView.clAdaptiveCard)
             }
         }
 
@@ -414,7 +418,7 @@ class ChatListAdapter(
     inner class ChatTextViewHolder(override val containerView: View) : BaseViewHolder(containerView) {
         override fun bindTo(chatMessage: ChatMessage) {  // Populates text views and star image to show a food
             super.bindTo(chatMessage)
-            tvMessage.text = chatMessage.message
+            itemView.tvMessage.text = chatMessage.message
         }
     }
 

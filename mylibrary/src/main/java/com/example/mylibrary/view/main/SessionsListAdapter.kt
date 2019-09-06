@@ -1,13 +1,17 @@
 package com.example.mylibrary.view.main
 
+import android.text.format.DateFormat
 import android.view.*
 import androidx.recyclerview.widget.RecyclerView
 import com.example.mylibrary.R
 import com.example.mylibrary.model.*
-import kotlinx.android.extensions.LayoutContainer
+//import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.rv_session_item.*
 import com.bumptech.glide.*
 import com.example.mylibrary.utils.*
+
+import com.example.mylibrary.view.main.LayoutContainer1
+import kotlinx.android.synthetic.main.rv_session_item.view.*
 
 class SessionsListAdapter(
     private var sessions: List<Session>,
@@ -70,16 +74,16 @@ class SessionsListAdapter(
 
     inner class ViewHolder(
         override val containerView: View
-    ) : RecyclerView.ViewHolder(containerView), LayoutContainer {
+    ) : RecyclerView.ViewHolder(containerView), LayoutContainer1 {
 
         fun bindTo(
             session: Session,
             company: Company?,
             message: ChatMessage?
         ) {  // Populates text views and star image to show a food
-            tvCompanyName.text = company?.name
-            tvSessionStatus.text = session.status
-            val dateFormat = android.text.format.DateFormat.getDateFormat(tvSessionStatus.getContext())
+            itemView.tvCompanyName.text = company?.name
+            itemView.tvSessionStatus.text = session.status
+            val dateFormat = DateFormat.getDateFormat(itemView.tvSessionStatus.getContext())
 
             val isSenderMe = message?.senderType == "customer"
             var messageDisplay: String? = null
@@ -121,14 +125,14 @@ class SessionsListAdapter(
             val maxMessageLength = 50
             if (messageDisplay != null) {
                 if (messageDisplay!!.length < maxMessageLength) {
-                    tvLatestMessage.text = messageDisplay
+                    itemView.tvLatestMessage.text = messageDisplay
                 } else {
                     messageDisplay = messageDisplay!!.take(maxMessageLength)
-                    tvLatestMessage.text = "$messageDisplay ..."
+                    itemView.tvLatestMessage.text = "$messageDisplay ..."
                 }
             }
             try {
-                tvSessionTime.text = dateFormat.format(session.localUpdatedAt) ?: ""
+                itemView.tvSessionTime.text = dateFormat.format(session.localUpdatedAt) ?: ""
             } catch (e: IllegalArgumentException) {
                 println(e.message)
                 println("got exception ")
@@ -137,7 +141,7 @@ class SessionsListAdapter(
             Glide.with(containerView)
                 .asBitmap()
                 .load(company?.photoUrl)
-                .into(ivCompanyLogo)
+                .into(itemView.ivCompanyLogo)
         }
     }
 }
